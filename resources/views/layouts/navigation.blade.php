@@ -15,6 +15,12 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('admin.productsIndex')" :active="request()->routeIs('admin.productsIndex')">
+                        products
+                    </x-nav-link>
+                    <x-nav-link :href="route('admin.ordersIndex')" :active="request()->routeIs('admin.ordersIndex')">
+                        orders
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -95,6 +101,10 @@
                     </x-responsive-nav-link>
                 </form>
             </div>
+            
         </div>
+        
     </div>
 </nav>
+
+

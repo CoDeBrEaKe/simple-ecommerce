@@ -7,11 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
-
+use App\Models\Product;
+use App\Models\Order;
+use App\Models\OrderProduct;
 class OrderController extends Controller{
-    public function index(Request $request){
-        $orders = Order::with('customer')->orderBy('created_at','desc')->paginate(20);
-        return view('orders.index', compact('orders'));
+
+    public function dashboardIndex(Request $request){
+        $orders = Order::query()->orderBy('created_at','desc')->paginate(20);
+        return view('dashboard.orders', compact('orders'));
     }
 
     public function createOrder(Request $request){
@@ -20,7 +23,6 @@ class OrderController extends Controller{
             $total = collect($cart)->reduce(fn($t,$i)=> $t + $i['price']*$i['quantity'], 0);
 
             $order = Order::create([
-                'customer_id' => auth()->id(),
                 'full_name' => $request->input('full_name'),
                 'phone' => $request->input('phone'),
                 'address' => $request->input('address'),

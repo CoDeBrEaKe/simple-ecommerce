@@ -3,7 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\Admin\ProductAdminController;
 /*
@@ -17,7 +17,13 @@ use App\Http\Controllers\Admin\ProductAdminController;
 |
 */
 
-
+# Admin routes
+Route::prefix('dashboard')->middleware(['auth','isAdmin'])->name('admin.')->group(function () {
+    Route::get('/products', [ProductController::class,'dashboardIndex'])->name('productsIndex');
+    Route::get('/products/{product}', [ProductController::class, 'edit'])->name('editProduct');
+    Route::delete('/products/{product}', [ProductController::class, 'delete'])->name('delete');
+    Route::get('/orders', [OrderController::class,'dashboardIndex'])->name('ordersIndex');
+});
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -44,9 +50,5 @@ Route::post('/checkout', [CheckoutController::class,'store'])->name('checkout.st
 // Route::middleware('auth')->group(function(){
 // });
 
-# Admin routes
-Route::prefix('admin')->middleware(['auth','isAdmin'])->name('admin.')->group(function(){
-    Route::resource('products', ProductAdminController::class);
-});
 
 require __DIR__.'/auth.php';
