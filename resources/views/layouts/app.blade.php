@@ -16,7 +16,12 @@
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100">
-            @include('layouts.navigation')
+            @if (Auth::user() && Auth::user()->is_admin == 1)
+            
+                @include('layouts.navigation')
+            @else
+                @include('layouts.nav')
+            @endif
 
             <!-- Page Heading -->
             @if (isset($header))
@@ -29,7 +34,7 @@
 
             <!-- Page Content -->
             <main>
-                {{ $slot }}
+                @yield('content')
             </main>
         </div>
     </body>
