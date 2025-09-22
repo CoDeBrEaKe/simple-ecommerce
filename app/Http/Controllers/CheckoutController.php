@@ -59,7 +59,6 @@ class CheckoutController extends Controller
             DB::commit();
             session()->forget('cart');
 
-            // Optionally: send email to admin/user using Mail::to(...)->send(new OrderPlaced($order));
             return redirect()->route('home')->with('success','Order placed successfully');
         } catch(\Throwable $e) {
             DB::rollBack();

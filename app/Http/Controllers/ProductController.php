@@ -27,6 +27,7 @@ class ProductController extends Controller{
     }
 
     public function logAction($action , $productId ,$details){
+        // Logger function
         ProductLog::create([
             'action'=>$action,
             'product_id'=>$productId,
@@ -43,9 +44,10 @@ class ProductController extends Controller{
         }
         
         $products = $query->paginate(10);
+        // Routing to dashboard
         return view('dashboard.products', compact('products'));
     }
-    
+
     public function index(Request $request)
     {
 
@@ -58,6 +60,7 @@ class ProductController extends Controller{
         
         $products = $query->paginate(12);
         session()->put('cart', $cart);
+        // Routing to home page
         return view('products.index', compact('products'));
     }
 
@@ -116,6 +119,7 @@ class ProductController extends Controller{
             }
             
                  $updates = [];
+                //  Adding the changes to the logger
                  if ($request->name !== $product->name) { $updates['name'] =$request->name ; }
                  if ($request->price !== $product->price) { $updates['price'] = $request->price; }
                  if ($request->stock !== $product->stock) { $updates['stock'] = $request->stock; }
