@@ -25,8 +25,9 @@
                         <td class="py-2 px-4 border-b border-gray-200">${{ $order->total_price }}</td>
                         <td class="py-2 px-4 border-b border-gray-200">{{ $order->created_at }}</td>
                         <td class="py-2 px-4 border-b border-gray-200">
-                            <a href="" class="text-blue-500 hover:underline block">Edit</a>
-                            <form action="" method="POST" class="inline">
+                            
+                            <a href="{{ route('admin.show' , $order) }}" class="text-blue-500 hover:underline block">Details</a>
+                            <form action="{{ route('admin.deleteOrder', $order) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="text-red-500 hover:underline " onclick="return confirm('Are you sure?')">Delete</button>

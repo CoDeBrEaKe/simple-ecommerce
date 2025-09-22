@@ -10,6 +10,8 @@ use Illuminate\View\View;
 use App\Models\Product;
 use App\Models\Order;
 use App\Models\OrderProduct;
+use Illuminate\Support\Facades\DB;
+
 class OrderController extends Controller{
 
     public function dashboardIndex(Request $request){
@@ -17,40 +19,6 @@ class OrderController extends Controller{
         return view('dashboard.orders', compact('orders'));
     }
 
-    public function createOrder(Request $request){
-          DB::beginTransaction();
-        try {
-            $total = collect($cart)->reduce(fn($t,$i)=> $t + $i['price']*$i['quantity'], 0);
-
-            $order = Order::create([
-                'full_name' => $request->input('full_name'),
-                'phone' => $request->input('phone'),
-                'address' => $request->input('address'),
-                'total_price' => $total,
-                
-            ]);
-
-            foreach($cart as $item) {
-                OrderProduct::create([
-                    'order_id' => $order->id,
-                    'product_id' => $item['id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price']
-                ]);
-                //  Decrementing stock after the order:
-                $product = Product::find($item['id']);
-                if($product){
-                    $product->stock = $product->stock - $item['quantity'];
-                    // ('stock', $item['quantity']);
-                }
-            }
-            DB::commit();   
-    }
-    catch(\Throwable $e) {
-            DB::rollBack();
-            return back()->with('error','Something went wrong: '.$e->getMessage());
-    }
-}
 public function deleteOrder(Order $order){
 
     DB::beginTransaction();
@@ -64,10 +32,21 @@ public function deleteOrder(Order $order){
             }
         }
         $order->delete();
+        DB::commit();   
+
+        return redirect()->route('admin.orderIndex')->with('success', 'Order updated successfully');
+
     } catch(\Throwable $e){
         DB::rollBack();
         return back()->with('error' , "Something went wrong: ".$e->getMessage());
     }
+}
+
+public function show(Order $order){
+    
+    $items = $order->products;
+    $total = $items->sum('price');
+    return view('dashboard.items' ,compact('items' , 'total'));
 }
 
 }

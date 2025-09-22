@@ -10,54 +10,67 @@ use Illuminate\View\View;
 use App\Models\Product;
 use App\Models\ProductLog;
 use Illuminate\Support\Facades\DB;
-use App\Services\ImageKitService;
+use ImageKit\ImageKit;
+
 
 
 class ProductController extends Controller{
 
-    protected $imageKit;
-     public function __construct(ImageKitService $imageKit)
+
+    public function __construct()
     {
-        $this->imageKit = $imageKit;
+        $this->imageKit = new ImageKit(
+            env('IMAGEKIT_PUBLIC'),
+            env('IMAGEKIT_PRIVATE'),
+            "https://ik.imagekit.io/mohstorage"
+        );
     }
 
-    public function logAction($action , $productName,$details){
+    public function logAction($action , $productId ,$details){
         ProductLog::create([
             'action'=>$action,
-            'product_name'=>$productName,
+            'product_id'=>$productId,
+            'changed_by'=>Auth::id(),
             'details'=>$details
         ]);
     }
 
-    public function dashboardIndex(){
+    public function dashboardIndex(Request $request){
         $query = Product::query();
+        if ($request->filled('q')) {
+            $q = $request->q;
+            $query->where('name','like',"%{$q}%");
+        }
+        
         $products = $query->paginate(10);
         return view('dashboard.products', compact('products'));
     }
+    
     public function index(Request $request)
     {
+
+        $cart = session()->get('cart', []);
         $query = Product::query();
-
-        // if ($request->filled('q')) {
-        //     $q = $request->q;
-        //     $query->where('name','like',"%{$q}%")
-        //           ->orWhere('description','like',"%{$q}%");
-        // }
+        if ($request->filled('q')) {
+            $q = $request->q;
+            $query->where('name','like',"%{$q}%");
+        }
+        
         $products = $query->paginate(12);
-
+        session()->put('cart', $cart);
         return view('products.index', compact('products'));
     }
 
+    public function create()
+    {
+    return view('products.create');
+    }
     public function edit(Product $product)
     {
     return view('products.edit', compact('product'));
     }
 
-    public function show(Product $product )
-    {
-        return redirect()->route('products.index');
-    }
-    public function createProduct(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
             'name'        => 'required|string|max:255',
@@ -66,47 +79,59 @@ class ProductController extends Controller{
             'image_url'       => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        if ($request->hasFile('image')) {
-            $file = fopen($request->file('image')->getPathname(), "r");
-            $fileName = $request->file('image')->getClientOriginalName();
+        if ($request->hasFile('image_url')) {
+            $file = fopen($request->file('image_url')->getPathname(), "r");
+            $fileName = $request->file('image_url')->getClientOriginalName();
 
-            $upload = $this->imageKit->upload($file, $fileName);
-
-            $imageUrl = $upload->result->url;
+            $upload = $this->imageKit->upload([
+                'file' => $file, 
+                'fileName' => $fileName,
+            ]);
+                $imageUrl = $upload->result->url;
+            $product = Product::create([
+            'name' => $request->name,
+            'price' => $request->price,
+            'stock' => $request->stock,
+            'image_url'=>$imageUrl
+        ]);  
         }
-        $this->logAction('create',$name,'Product created with price: '.$price.' and stock: '.$stock);
-        return redirect()->route('admin.productsIndex')->with('success', 'Product created successfully');
+
+       
+        $this->logAction('create',$product->id,'Product created with price: '.$request->price.' and stock: '.$request->stock);
+        return redirect()->route('admin.productsIndex')->with('success', 'Product Added successfully');
     }
   
-    public function updateProduct(Product $product)
+    public function update(Product $product , Request $request)
     {
-        if ($request->hasFile('image')) {
-            $file = fopen($request->file('image')->getPathname(), "r");
-            $fileName = $request->file('image')->getClientOriginalName();
+        $imageUrl = $product->image_url;
+         if ($request->hasFile('image_url')) {
+            $file = fopen($request->file('image_url')->getPathname(), "r");
+            $fileName = $request->file('image_url')->getClientOriginalName();
 
-            $upload = $this->imageKit->upload($file, $fileName);
-
-            $imageUrl = $upload->result->url;
-        }
-        $oldProduct = Product::find($product->id);
-        $updates = [];
-        if ($oldProduct->name !== $product->name) { $updates['name'] = $name; }
-        if ($oldProduct->price !== $product->price) { $updates['price'] = $price; }
-        if ($oldProduct->stock !== $product->stock) { $updates['stock'] = $stock; }
-        if ($oldProduct->image !== $product->image) { $updates['image_url'] = $image; }
-
-        if (!empty($updates)) {
-            $product->update($updates);
-            $this->logAction('update',$originalName,'Product updated: '.json_encode($updates));
-        }
+            $upload = $this->imageKit->upload([
+                'file' => $file, 
+                'fileName' => $fileName,
+            ]);
+                $imageUrl = $upload->result->url;
+            }
+            
+                 $updates = [];
+                 if ($request->name !== $product->name) { $updates['name'] =$request->name ; }
+                 if ($request->price !== $product->price) { $updates['price'] = $request->price; }
+                 if ($request->stock !== $product->stock) { $updates['stock'] = $request->stock; }
+                 if ($imageUrl !== $product->image_url) { $updates['image_url'] = $imageUrl; }
+         
+                     $product->update($updates);
+                     $product->save();
+                     $this->logAction('update',$product->id,'Product'.$product->id.'updated: '.json_encode($updates));
 
         return redirect()->route('admin.productsIndex')->with('success', 'Product updated successfully');
     }
     public function delete(Product $product)
     {
-        $productName = $product->name;
+        $productId = $product->id;
         $product->delete();
-        $this->logAction('delete',$productName,'Product deleted');
+        $this->logAction('delete',$productId,'Product deleted');
         return redirect()->route('admin.productsIndex')->with('success', 'Product deleted successfully');
     }
 }

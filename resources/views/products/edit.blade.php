@@ -4,7 +4,7 @@
 <div class="flex flex-col gap-4 bg-white p-6 rounded shadow-md min-h-screen items-center justify-center">
     <img src="{{$product->image_url}}" alt="Product Image" class="w-1/4 h-auto mx-auto">
 
-    <form action="route('products.update,$product')" method="POST" class="w-22 md-w-40 mx-auto space-y-4">
+    <form action="{{route('admin.update',$product)}}" method="POST" class="w-22 md-w-40 mx-auto space-y-4" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         

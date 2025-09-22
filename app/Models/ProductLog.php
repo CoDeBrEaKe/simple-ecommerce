@@ -7,5 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductLog extends Model
 {
-    protected $fillable = ['action','product_name','details'];
+    protected $fillable = ['action','product_id','changed_by','details'];
 }

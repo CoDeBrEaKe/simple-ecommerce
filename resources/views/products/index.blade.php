@@ -5,10 +5,10 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
     @foreach($products as $product)
     <div class="bg-white p-4 rounded shadow">
-      <a href="{{ route('products.show', 'product') }}">
-        <img src="{{ $product->image ? asset('storage/'.$product->image) : '/placeholder.png' }}" class="h-40 w-full object-cover rounded">
+      <div >
+        <img src="{{ $product->image_url }}" class="h-40 w-full object-cover rounded">
         <h3 class="mt-2 font-semibold">{{ $product->name }}</h3>
-      </a>
+    </div>
       <div class="flex items-center justify-between mt-2">
 
         <span class="text-lg font-bold">${{ number_format($product->price,2) }}</span>

@@ -62,15 +62,4 @@ class CartController extends Controller
         }
         return back();
     }
-
-    public function remove(Request $request)
-    {
-        $id = $request->input('id');
-        $cart = $this->getCart();
-        if(isset($cart[$id])){
-            unset($cart[$id]);
-            session()->put('cart', $cart);
-        }
-        return back();
-    }
 }

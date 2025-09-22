@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('product_logs', function (Blueprint $table) {
             $table->id();
             $table->string('action');
-            $table->string('product_name');
+            $table->integer('product_id');
+            $table->integer('changed_by');
             $table->text('details')->nullable();
             $table->timestamps();
         });
